@@ -40,3 +40,9 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task runapp(type:JavaExec) {
+    mainClass = application.mainClass
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = buildDir
+}
