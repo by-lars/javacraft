@@ -10,7 +10,7 @@ project.ext.lwjglVersion = "3.3.2"
 project.ext.lwjglNatives = "natives-linux"
 
 application {
-    mainClass = 'de.lars.javacraft.core.Game'
+    mainClass = 'de.lars.javacraft.core.Main'
 }
 
 repositories {
@@ -20,6 +20,8 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    implementation("org.joml:joml:1.10.5")
 
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 
@@ -45,4 +47,15 @@ task runapp(type:JavaExec) {
     mainClass = application.mainClass
     classpath = sourceSets.main.runtimeClasspath
     workingDir = buildDir
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

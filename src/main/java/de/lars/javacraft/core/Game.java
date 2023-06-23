@@ -1,7 +1,17 @@
 package de.lars.javacraft.core;
 
-import de.lars.javacraft.graphics.Shader;
-import de.lars.javacraft.graphics.Buffer;
+import de.lars.javacraft.graphics.api.Shader;
+import de.lars.javacraft.graphics.api.Buffer;
+import de.lars.javacraft.graphics.geometry.ChunkMesher;
+import de.lars.javacraft.graphics.geometry.Mesh;
+import de.lars.javacraft.graphics.rendering.Camera;
+import de.lars.javacraft.graphics.rendering.Renderer;
+import de.lars.javacraft.io.Input;
+import de.lars.javacraft.world.Chunk;
+import de.lars.javacraft.world.Material;
+import org.joml.Quaternionf;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -12,7 +22,6 @@ import java.nio.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_SAMPLES;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -21,112 +30,72 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Game {
+    private static Game s_Instance;
+    private final long m_Window;
+    private final Camera cam;
+    private final Chunk chunk;
+    public Game(long window) {
+        s_Instance = this;
+        m_Window = window;
 
-    // The window handle
-    private long window;
+        cam = new Camera(new Vector3f(0,0,0));
+        chunk = new Chunk();
 
-    public void run() {
-        System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+        for(int x = 0; x < 32; x++) {
+            for (int y = 0; y < 32; y++) {
+                chunk.setVoxel(x, 0, y, Material.SOLID);
+            }
+        }
 
-        init();
-        loop();
-
-        glfwFreeCallbacks(window);
-        glfwDestroyWindow(window);
-
-        glfwTerminate();
-        glfwSetErrorCallback(null).free();
+        Renderer.init(800, 600);
     }
 
-    private void init() {
-        GLFWErrorCallback.createPrint(System.err).set();
+    public static Game get() {
+        return s_Instance;
+    }
 
-        if ( !glfwInit() )
-            throw new IllegalStateException("Unable to initialize GLFW");
+    public long getWindow() {
+        return m_Window;
+    }
 
-        // Configure GLFW
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-        glfwWindowHint(GLFW_SAMPLES, 8);
-
-        // Create the window
-        window = glfwCreateWindow(300, 300, "Hello World!", NULL, NULL);
-        if ( window == NULL )
-            throw new RuntimeException("Failed to create the GLFW window");
-
-        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-        glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-        });
-
-        glfwSetFramebufferSizeCallback(window, (window1, width, height) -> {
-            glViewport(0,0,width,height);
-        });
-
-        // Get the thread stack and push a new frame
+    private void handleMouse() {
         try ( MemoryStack stack = stackPush() ) {
-            IntBuffer pWidth = stack.mallocInt(1); // int*
-            IntBuffer pHeight = stack.mallocInt(1); // int*
+            DoubleBuffer pX = stack.mallocDouble(1);
+            DoubleBuffer pY = stack.mallocDouble(1);
 
-            // Get the window size passed to glfwCreateWindow
-            glfwGetWindowSize(window, pWidth, pHeight);
+            glfwGetCursorPos(m_Window, pX, pY);
 
-            // Get the resolution of the primary monitor
-            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-            // Center the window
-            glfwSetWindowPos(
-                    window,
-                    (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2
-            );
-        } // the stack frame is popped automatically
-
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
-        glfwShowWindow(window);
-    }
-
-    private void loop() {
-        GL.createCapabilities();
-
-        glClearColor(0.31f, 0.31f, 0.31f, 1.0f);
-
-        int vao = glGenVertexArrays();
-        glBindVertexArray(vao);
-
-        Shader shader = Shader.fromFiles("resources/main/shader/debug.vert", "resources/main/shader/debug.frag");
-        shader.use();
-        Buffer buffer = Buffer.createVertexBuffer(9 * Float.BYTES);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES,0);
-        glEnableVertexAttribArray(0);
-
-        float[] triangle = {
-                0.0f,  1.0f, 0.0f,
-                -1.0f, -1.0f, 0.0f,
-                1.0f, -1.0f, 0.0f
-        };
-
-        buffer.upload(triangle, 0);
-
-        while ( !glfwWindowShouldClose(window) ) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+            cam.rotate((float)pX.get(), (float)pY.get());
         }
     }
 
-    public static void main(String[] args) {
-        new Game().run();
+    private void handleKeyboard() {
+        Vector2f input = Input.getMovementAxies();
+        Quaternionf rotation = cam.getOrientation().conjugate();
+        Vector3f acceleration = rotation.transform(new Vector3f(input.y, 0, input.x * -1.0f));
+        cam.translate(acceleration.mul(0.2f));
+    }
+
+    public void update() {
+        handleMouse();
+        handleKeyboard();
+    }
+
+    public void onResize(int width, int height) {
+        Renderer.setRenderSize(width, height);
+    }
+
+    public void draw() {
+        glClearColor(0.31f, 0.31f, 0.31f, 1.0f);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Renderer.setView(cam.getViewMatrix());
+
+        Mesh mesh = ChunkMesher.mesh(chunk);
+
+        Renderer.renderChunk(mesh);
+        Renderer.debugRenderTriangle();
+        mesh.dispose();
     }
 }
