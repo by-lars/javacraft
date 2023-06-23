@@ -9,14 +9,7 @@ public class Chunk {
 
     public Chunk() {
         m_Voxels = new Material[DIM_X][DIM_Y][DIM_Z];
-
-        for(int x = 0; x < Chunk.DIM_X; x++) {
-            for (int y = 0; y < Chunk.DIM_Y; y++) {
-                for (int z = 0; z < Chunk.DIM_Z; z++) {
-                    m_Voxels[x][y][z] = Material.AIR;
-                }
-            }
-        }
+        clear();
     }
 
     public void setVoxel(int chunkX, int chunkY, int chunkZ, Material material) {
@@ -24,5 +17,14 @@ public class Chunk {
     }
     public Material getVoxel(int chunkX, int chunkY, int chunkZ) {
         return m_Voxels[chunkX][chunkY][chunkZ];
+    }
+    public void clear() {
+        for(int x = 0; x < Chunk.DIM_X; x++) {
+            for (int y = 0; y < Chunk.DIM_Y; y++) {
+                for (int z = 0; z < Chunk.DIM_Z; z++) {
+                    m_Voxels[x][y][z] = Material.AIR;
+                }
+            }
+        }
     }
 }

@@ -12,8 +12,7 @@ import java.nio.IntBuffer;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.opengl.GL11.glPolygonMode;
-import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -49,6 +48,7 @@ public class Main {
 
         GL.createCapabilities();
         GLUtil.setupDebugMessageCallback();
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // Run Game
         Game game = new Game(window);

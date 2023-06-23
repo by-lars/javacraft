@@ -26,7 +26,7 @@ public class ChunkMesher {
     private static Mesh meshChunkGreedy(Chunk chunk) {
         final int[] CHUNK_DIMENSIONS = {Chunk.DIM_X ,Chunk.DIM_Y, Chunk.DIM_Z};
 
-        Mesh mesh = new Mesh(Chunk.DIM_X * Chunk.DIM_Y * Chunk.DIM_Z);
+        Mesh mesh = new Mesh(Chunk.DIM_X * Chunk.DIM_Y * Chunk.DIM_Z * 4);
 
         boolean[] mask = new boolean[Chunk.DIM_X * Chunk.DIM_Y];
 

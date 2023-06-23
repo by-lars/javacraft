@@ -41,14 +41,6 @@ public class Game {
         cam = new Camera(new Vector3f(0,0,0));
         chunk = new Chunk();
 
-        for(int x = 0; x < 32; x++) {
-            for (int y = 0; y < 32; y++) {
-                for(int z = 0; z < Math.sin(x*y) * 10; z++) {
-                    chunk.setVoxel(x, z, y, Material.SOLID);
-                }
-            }
-        }
-
         Renderer.init(800, 600);
     }
 
@@ -93,6 +85,20 @@ public class Game {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Renderer.setView(cam.getViewMatrix());
+        double time = glfwGetTime();
+        chunk.clear();
+        for(int x = 0; x < 32; x++) {
+            for (int y = 0; y < 32; y++) {
+                float height1 = Math.abs((float)Math.sin((float)(x)*0.01f + time));
+                float height2 = Math.abs((float)Math.sin((float)(y)*0.02f + time));
+                float height = (height1 + height2) * 16.0f;
+                height = Math.min(height, 32);
+
+                for(int z = 0; z < height; z++) {
+                    chunk.setVoxel(x, z, y, Material.SOLID);
+                }
+            }
+        }
 
         Mesh mesh = ChunkMesher.mesh(chunk);
 
