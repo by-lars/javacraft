@@ -9,5 +9,5 @@ out vec4 vertexColor;
 
 void main() {
     gl_Position = uProj * uView * vec4(aPos, 1.0f);
-    vertexColor = vec4((aPos + 1.0f) / 2.0f, 1.0f);
+    vertexColor = vec4((aPos.yxz + 1.0f) / 2.0f, 1.0f);
 }
