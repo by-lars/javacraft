@@ -64,7 +64,10 @@ public class Renderer {
     }
 
     public static void shutdown() {
-
+        m_ChunkShader.dispose();
+        m_ChunkIndicies.dispose();
+        m_ChunkVerts.dispose();
+        m_Triangle.dispose();
     }
 
     public static void setRenderSize(int width, int height) {

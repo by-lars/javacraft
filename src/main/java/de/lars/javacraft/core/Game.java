@@ -43,7 +43,9 @@ public class Game {
 
         for(int x = 0; x < 32; x++) {
             for (int y = 0; y < 32; y++) {
-                chunk.setVoxel(x, 0, y, Material.SOLID);
+                for(int z = 0; z < Math.sin(x*y) * 10; z++) {
+                    chunk.setVoxel(x, z, y, Material.SOLID);
+                }
             }
         }
 
